@@ -1,0 +1,19 @@
+# lanes roles file — single source of truth. Edit this, never the generated CLAUDE.md/AGENTS.md.
+owner: owner
+boss: claude-code
+agents:
+  claude-code:
+    status: active          # active | paused | retired
+    lane: ["src/**", "test/**", "docs/**"]
+    reviews: ["codex"]
+  codex:
+    status: active
+    lane: ["examples/**"]
+    reviews: ["claude-code"]
+rules:
+  - claim before start, one task at a time
+  - never edit another lane's files
+  - shared interfaces change in agents/specs first
+  - nobody approves their own work
+  - no deploy, push or migration without owner go
+resources: []
