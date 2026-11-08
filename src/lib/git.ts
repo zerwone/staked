@@ -121,7 +121,7 @@ function addedLines(out: string | null): string[] {
 }
 
 export function statusCount(cwd: string): number {
-  const out = git(cwd, ['status', '--porcelain'], { allowFail: true });
+  const out = git(cwd, ['status', '--porcelain', '--untracked-files=all'], { allowFail: true });
   if (!out) return 0;
   return out.split(/\r?\n/).filter(Boolean).length;
 }

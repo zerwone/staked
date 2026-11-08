@@ -7,6 +7,7 @@ import { cmdCheck, cmdHook } from './check.js';
 import { cmdHandover } from './handover.js';
 import { cmdReport } from './report.js';
 import { cmdPrune } from './prune.js';
+import { cmdDoctor } from './doctor.js';
 
 export const HELP = `lanes: roles, lanes and a decision ledger for multi-agent repos
 
@@ -42,6 +43,10 @@ Usage: lanes <command> [options]
   report check <path> [--no-git]         validate report frontmatter (task, agent, flags,
                                          tests_run, native_boot, files_changed) against git
   prune [--days 14] [--dry-run]          archive closed specs and reports of tasks DONE > N days
+  doctor [dir] [--json]                  find the ten failure modes (stacked authority, duplicate
+                                         ids, hand-edited generated files, lane overlaps, expired
+                                         locks and questions, >1 DOING, reports without flags, ...)
+                                         dir may be a legacy agents/ folder without roles.yml
 
 Identity: --as <agent>, else $LANES_AGENT, else git config user.name.
 `;
@@ -61,4 +66,5 @@ export const COMMANDS: Record<string, Command> = {
   handover: cmdHandover,
   report: cmdReport,
   prune: cmdPrune,
+  doctor: cmdDoctor,
 };
