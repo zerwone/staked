@@ -1,0 +1,39 @@
+{
+  "name": "lanes",
+  "version": "0.1.0",
+  "description": "Roles, lanes and a decision ledger for multi-agent repos. Git-native, works with any agent that can read a file.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lanes": "dist/main.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "agents",
+    "claude-code",
+    "codex",
+    "cursor",
+    "gemini",
+    "multi-agent",
+    "pre-commit",
+    "coordination"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
