@@ -1,0 +1,2 @@
+{"ts":"2026-11-08T12:50:00Z","task":"LANES-BUILD","agent":"owner","status":"TODO","note":"build the lanes CLI per docs/LANES-BUILD.md","flags":[]}
+{"ts":"2026-11-08T12:50:00Z","task":"POCKET-BUILD","agent":"owner","status":"TODO","note":"build pocket per docs/POCKET-BUILD.md; new repo zerwone/pocket; depends on nothing in LANES-BUILD","flags":[]}

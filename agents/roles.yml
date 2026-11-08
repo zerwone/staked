@@ -17,3 +17,8 @@ rules:
   - nobody approves their own work
   - no deploy, push or migration without owner go
 resources: []
+
+# optional, read by `pocket lanes sync` (see docs/POCKET-BUILD.md)
+provider_policy:
+  claude-code: { order: [anthropic, groq, cerebras, nvidia], daily_cap_usd: 10 }
+  codex:       { order: [openai, nvidia, openrouter], daily_cap_usd: 5 }

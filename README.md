@@ -40,6 +40,10 @@ agents/
   specs/             shared interface contracts
 ```
 
+## Sister project
+
+`pocket`: a local BYOK token router that keeps agents running on the user's own free-tier keys when the paid model hits its quota. Spec: `docs/POCKET-BUILD.md`.
+
 ## License
 
 MIT
