@@ -294,7 +294,7 @@ export function runGen(repo: Repo, opts: { force?: boolean; dryRun?: boolean } =
     const abs = repo.p(p.file);
     const cur = readText(abs);
     res.sizes[p.file] = Buffer.byteLength(p.content);
-    if (cur !== null && verifyGenerated(cur) === 'not-generated' && !opts.force) {
+    if (cur !== null && cur.trim() !== '' && verifyGenerated(cur) === 'not-generated' && !opts.force) {
       res.refused.push(p.file);
       continue;
     }

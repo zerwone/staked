@@ -1,43 +1,128 @@
 # lanes
 
-**Roles, lanes and a decision ledger for multi-agent repos.** Git-native. No daemon. Works with any coding agent that can read a file.
+**Roles, lanes and a decision ledger for multi-agent repos — git-native, works with any agent that can read a file.**
 
-> Status: pre-alpha. The protocol has run for 24 days on a real 1,600-commit project across Claude Code, Codex and Cursor. The CLI is being extracted from it now. See `docs/ORIGIN.md` for the audit and `docs/LANES-BUILD.md` for the build spec.
+You run two or more coding agents (Claude Code, Codex, Cursor, Gemini CLI, …) on one repo, and you are often away. lanes is a small CLI plus a folder convention: one `roles.yml` says who owns which paths, an append-only board and question ledger record what happened, a pre-commit hook enforces the lanes, and every agent gets a short generated context file instead of the whole history.
 
-## The problem
+No daemon, no server, no network, zero runtime dependencies. Everything is files under `agents/`.
 
-You run two or more coding agents on one repo. You are often away. Every agent reads the whole shared state every turn, roles get redefined by stacking "latest instruction" sections, lanes are enforced by trust, and when you come back you read 100 KB of markdown to find the three decisions that actually needed you.
+## 30-second quickstart
 
-## What lanes does
+```sh
+npx lanes init --agents claude-code,cursor     # scaffold agents/ and roles.yml
+$EDITOR agents/roles.yml                       # give each agent a lane: lane: ["web/**"]
+npx lanes gen                                  # CLAUDE.md, AGENTS.md, .cursor/rules/lanes.mdc (< 6 KB each)
+npx lanes hook install                         # pre-commit: out-of-lane commits are refused
 
-| Command | Job |
-| --- | --- |
-| `lanes init` | Scaffold `agents/` and `roles.yml`; generate per-agent `CLAUDE.md` / `AGENTS.md` / `.cursor/rules` under 6 KB each |
-| `lanes claim` / `release` / `lock` | Lock files with agent id and TTL; refused if held |
-| `lanes check` | Pre-commit hook: fails a commit that touches paths outside the committing agent's lane, or a REVIEW without a valid report |
-| `lanes board` | `board.jsonl` in, short open-tasks view out |
-| `lanes ask` / `answer` / `questions open` | Structured NEEDS-OWNER ledger with status, blocking, default and expiry. Phone-sized |
-| `lanes handover` | Rewrite `roles.yml` once, log it, regenerate every agent's context |
-| `lanes report check` | Validate report frontmatter against the real git diff |
-| `lanes doctor` | Find stacked authority, duplicate task ids, hand-edited generated files, expired locks |
+# in each agent's worktree
+git config user.name cursor                    # or: export LANES_AGENT=cursor
+npx lanes claim T-001 --as cursor              # one task at a time, lock with TTL
+npx lanes ask --as cursor --text "Same page or separate tab?" --blocking T-001 --default "same page" --expires 2d
+npx lanes status T-001 REVIEW --as cursor      # needs agents/reports/T-001-cursor.md with frontmatter
 
-## What lanes is not
+# you, on your phone
+npx lanes questions open                       # only what needs you, most-blocking first
+npx lanes answer Q-001 --text "separate tab"
+```
 
-Not agent-to-agent messaging (agent-bus, vendor subagents). Not orchestration (CrewAI, AutoGen, LangGraph). Not transcript import (crossby, continues). Not claim verification against diffs (groundtruth). lanes is the layer those tools do not have: who may do what, who decided what, and whether the files agree.
+For the hook, add lanes as a dev dependency (`npm i -D lanes`) so it resolves from `node_modules/.bin`; the hook never downloads anything.
+
+Requires Node 20+ and git. Paths are handled for Windows, macOS and Linux (backslashes, CRLF checkouts); the test suite has so far run on Linux only.
 
 ## Data model
 
 ```
 agents/
-  roles.yml          single source of truth for roles, lanes, status
-  board.jsonl        append-only task events; latest per task wins
+  roles.yml          single source of truth: owner, boss, agents (status, lane globs, reviews), rules, resources
+  board.jsonl        append-only task events; latest event per task wins
   questions.jsonl    append-only owner-decision ledger
-  DECISIONS.md       numbered owner decisions, hand-written, append-only
-  HISTORY.md         one line per handover, generated
-  locks/             claim and resource locks with TTL
-  inbox/<agent>/     specs with frontmatter
-  reports/           reports with frontmatter
-  specs/             shared interface contracts
+  DECISIONS.md       numbered owner decisions (D-001), hand-written by the owner, append-only
+  HISTORY.md         one line per handover                                       (generated)
+  BOARD.md           open tasks, newest first                                    (generated)
+  locks/<name>.lock  claim and resource locks with agent and TTL                 (git-ignored)
+  inbox/<agent>/     specs, with frontmatter: task, owner, status, allowed_paths, done_when
+  reports/           <task>-<agent>.md, frontmatter: task, agent, flags, tests_run, native_boot, files_changed
+  specs/             shared interface contracts (change these first)
+  archive/           pruned specs and reports
+```
+
+`roles.yml`:
+
+```yaml
+owner: alex
+boss: claude-code
+agents:
+  claude-code:
+    status: active          # active | paused | retired
+    lane: ["api/**", "db/**"]
+    reviews: ["cursor"]
+  cursor:
+    status: active
+    lane: ["web/**"]
+    reviews: ["claude-code"]
+rules:
+  - claim before start, one task at a time
+  - never edit another lane's files
+  - shared interfaces change in agents/specs first
+  - nobody approves their own work
+  - no deploy, push or migration without owner go
+resources: ["staging-db"]   # lockable named resources
+```
+
+A board event: `{"ts":"2026-11-08T12:00:00Z","task":"T-101","agent":"cursor","status":"DOING","note":"...","flags":[]}`. Statuses: `TODO DOING BLOCKED REVIEW DONE PAUSED STOPPED`.
+
+A question: `{"ts":"...","id":"Q-031","agent":"cursor","text":"...","blocking":["T-101"],"default":"keep flags off","expires":"2026-11-10","status":"open","answer":null}`.
+
+Generated files carry `<!-- generated by lanes, do not edit -->` and a content hash, so a hand edit is caught by `lanes check` and `lanes doctor`. The two `.jsonl` logs are marked `merge=union` in `.gitattributes`, so parallel branches never conflict on them.
+
+## Commands
+
+| Command | Job |
+| --- | --- |
+| `lanes init [--agents a,b] [--owner name]` | Scaffold `agents/`, write a `roles.yml` template, add `merge=union` for the logs, print next steps |
+| `lanes gen [--force]` | Regenerate `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/lanes.mdc`, `GEMINI.md` (only for agents that read them) plus `agents/BOARD.md` and `agents/HISTORY.md`. Each context file holds that agent's role, lane, open tasks, open questions it owns and the rules, under 6 KB |
+| `lanes claim <task> --as <agent>` | Start a task. Refused if another agent holds it, if you already have a DOING task, or if you are paused. Writes `locks/<task>.lock` (TTL 8h, `--ttl`) |
+| `lanes status <task> <STATUS> --as <agent>` | Move a task. `REVIEW` needs a valid report whose `files_changed` match the real diff; `DONE` needs a different agent who reviews the author (or the owner) |
+| `lanes release <task>` | Give a task back (TODO) and drop its lock |
+| `lanes lock <resource> --as <agent> [--ttl 2h]` / `lanes unlock` | Mutex for a shared resource from `roles.yml`. Refused while held and not expired |
+| `lanes board [--all] [--json]` | Open tasks, newest first, one row per task |
+| `lanes ask` / `lanes answer Q-031` / `lanes questions open` | The owner ledger. `questions open` prints only unresolved entries, most-blocking first, then oldest, two lines each |
+| `lanes check [--as <agent>] [--staged]` | Pre-commit gate: refuses paths outside the committer's lane, code without a claim, board rows written for someone else, hand-edited generated files, and REVIEW without a valid report. Lanes are read from `HEAD`, so a commit cannot widen its own lane. `--commit <rev>` replays history |
+| `lanes hook install` | Writes `.git/hooks/pre-commit` running `lanes check`; an existing hook is kept and runs first |
+| `lanes handover <from> <to> [--lanes all\|list]` | Rewrite `roles.yml` (lanes and/or boss), log a `HISTORY.md` line, regenerate. Refused while `<from>` is DOING unless `--force-release` (marks it PAUSED) |
+| `lanes report check <path>` | Validate a report's frontmatter against the git diff |
+| `lanes prune` | Archive closed specs and reports of tasks DONE more than 14 days ago |
+| `lanes doctor [dir]` | Find stacked authority sections, duplicate task ids, hand-edited generated files, lane overlaps, expired locks, expired unanswered questions, agents with more than one DOING task, reports without `flags`. Also runs on a legacy `agents/` folder with no `roles.yml` |
+
+Identity is `--as <agent>`, else `$LANES_AGENT`, else `git config user.name`. The owner named in `roles.yml` is exempt from lane checks.
+
+## Where it comes from
+
+lanes is extracted from a file-based protocol that coordinated four coding agents across three vendors for 24 days and about 1,600 commits on one real project, with no framework and no shared chat. The protocol worked; its files did not scale. The audit (`docs/ORIGIN.md`) found ten weaknesses. These are the numbers that changed:
+
+| | Hand-maintained markdown | With lanes |
+| --- | --- | --- |
+| Context an agent loads before starting | ~300 KB (~75k tokens): protocol, agent rules, board, questions | under 6 KB per agent, generated |
+| Finding what needs the owner | read a 112 KB questions file and a 144 KB board | one `questions open`, about 20 lines |
+| Who is boss | three stacked "current authority" sections, resolved by reading dates | one `roles.yml`; `handover` rewrites it and logs one line |
+| Duplicate task entries on the board | 12 of 87 task headers | none: one row per task, latest event wins |
+| Cross-lane commits caught | 0 of 29 | all of them, before the commit |
+| Claim races | two agents could claim in the same minute | O_EXCL lock files shared by every worktree |
+| Evidence in reports | free prose | frontmatter checked against the diff |
+
+## What lanes is not
+
+- **Not messaging.** Agents do not talk to each other through lanes; they read files.
+- **Not orchestration.** lanes does not start, schedule or route agents.
+- **Not transcript import.** It never reads or stores agent sessions.
+
+It is the layer those tools do not have: who may do what, who decided what, and whether the files agree.
+
+## Development
+
+```sh
+npm install
+npm test        # builds, then runs the vitest suite (unit, e2e through a real git hook, history replay)
 ```
 
 ## License

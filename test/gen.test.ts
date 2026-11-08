@@ -91,3 +91,12 @@ describe('gen on Windows checkouts', () => {
     expect(read(dir, 'CLAUDE.md')).toContain('\r\n');
   });
 });
+
+describe('gen over empty files', () => {
+  it('replaces an empty placeholder without --force', () => {
+    const dir = fixtureRepo();
+    write(dir, 'agents/HISTORY.md', '');
+    expect(lanes(dir, ['gen']).code).toBe(0);
+    expect(read(dir, 'agents/HISTORY.md')).toContain('# History');
+  });
+});
