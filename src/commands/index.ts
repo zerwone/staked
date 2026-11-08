@@ -1,6 +1,7 @@
 import type { Command } from '../cli.js';
 import { cmdClaim, cmdRelease, cmdStatus } from './tasks.js';
 import { cmdLock, cmdUnlock } from './locks.js';
+import { cmdBoard } from './board.js';
 
 export const HELP = `lanes: roles, lanes and a decision ledger for multi-agent repos
 
@@ -19,6 +20,8 @@ Usage: lanes <command> [options]
   lock [<resource> --as <agent> [--ttl 8h] [--note ..]]
                                          take a named resource from roles.yml (no args: list locks)
   unlock <resource> --as <agent> [--force]
+  board [--all] [--json] [--md] [--agent a] [--status S]
+                                         open tasks, newest first, one row per task
 
 Identity: --as <agent>, else $LANES_AGENT, else git config user.name.
 `;
@@ -29,4 +32,5 @@ export const COMMANDS: Record<string, Command> = {
   release: cmdRelease,
   lock: cmdLock,
   unlock: cmdUnlock,
+  board: cmdBoard,
 };
