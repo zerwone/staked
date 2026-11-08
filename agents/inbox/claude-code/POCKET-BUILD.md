@@ -1,3 +1,10 @@
+---
+task: POCKET-BUILD
+owner: claude-code
+status: open
+allowed_paths: ["docs/POCKET-BUILD.md", "agents/roles.yml", "README.md"]
+done_when: "pocket npm test passes; attached Claude Code session survives a forced 429 with the degraded banner; dash shows the event; doctor clean; detach leaves agent configs byte-identical"
+---
 # POCKET-BUILD — build `pocket`, the local BYOK token router for coding agents
 
 Owner spec. Agent: claude-code. Date: 2026-11-08. Status: open.
