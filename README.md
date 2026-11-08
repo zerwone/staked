@@ -125,6 +125,10 @@ npm install
 npm test        # builds, then runs the vitest suite (unit, e2e through a real git hook, history replay)
 ```
 
+## Sister project
+
+`pocket`: a local BYOK token router that keeps agents running on the user's own free-tier keys when the paid model hits its quota. Spec: `docs/POCKET-BUILD.md`.
+
 ## License
 
 MIT
