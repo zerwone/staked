@@ -5,6 +5,7 @@ import { cmdBoard } from './board.js';
 import { cmdAnswer, cmdAsk, cmdQuestions } from './questions.js';
 import { cmdCheck, cmdHook } from './check.js';
 import { cmdHandover } from './handover.js';
+import { cmdReport } from './report.js';
 
 export const HELP = `lanes: roles, lanes and a decision ledger for multi-agent repos
 
@@ -37,6 +38,8 @@ Usage: lanes <command> [options]
                                          (an existing hook is kept and chained first)
   handover <from> <to> [--lanes all|none|g1,g2] [--keep-boss] [--force-release]
                                          move lanes and/or boss in roles.yml, log HISTORY, regen
+  report check <path> [--no-git]         validate report frontmatter (task, agent, flags,
+                                         tests_run, native_boot, files_changed) against git
 
 Identity: --as <agent>, else $LANES_AGENT, else git config user.name.
 `;
@@ -54,4 +57,5 @@ export const COMMANDS: Record<string, Command> = {
   check: cmdCheck,
   hook: cmdHook,
   handover: cmdHandover,
+  report: cmdReport,
 };
