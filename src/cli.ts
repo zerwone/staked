@@ -3,6 +3,7 @@ import { parseArgs, Args } from './lib/args.js';
 import { Ctx, defaultCtx } from './lib/context.js';
 import { LanesError } from './lib/util.js';
 import { cmdInit } from './commands/init.js';
+import { cmdGen } from './commands/gen.js';
 import { COMMANDS, HELP } from './commands/index.js';
 
 export type Command = (ctx: Ctx, args: Args) => number;
@@ -24,7 +25,7 @@ export function run(argv: string[], ctx: Ctx = defaultCtx()): number {
     ctx.out(HELP);
     return 0;
   }
-  const table: Record<string, Command> = { init: cmdInit, ...COMMANDS };
+  const table: Record<string, Command> = { init: cmdInit, gen: cmdGen, ...COMMANDS };
   const fn = table[cmd];
   if (!fn) {
     ctx.err(`lanes: unknown command "${cmd}". Run \`lanes help\`.`);
