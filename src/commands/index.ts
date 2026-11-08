@@ -2,6 +2,7 @@ import type { Command } from '../cli.js';
 import { cmdClaim, cmdRelease, cmdStatus } from './tasks.js';
 import { cmdLock, cmdUnlock } from './locks.js';
 import { cmdBoard } from './board.js';
+import { cmdAnswer, cmdAsk, cmdQuestions } from './questions.js';
 
 export const HELP = `lanes: roles, lanes and a decision ledger for multi-agent repos
 
@@ -22,6 +23,11 @@ Usage: lanes <command> [options]
   unlock <resource> --as <agent> [--force]
   board [--all] [--json] [--md] [--agent a] [--status S]
                                          open tasks, newest first, one row per task
+  ask --as <agent> --text ".." [--blocking T-1,T-2] [--default ..] [--expires 2d]
+                                         add a question for the owner (prints its id)
+  answer Q-031 (--text ".." | --use-default | --withdraw)
+                                         owner answers; the asker may withdraw
+  questions [open|all|Q-031] [--json]    open: unresolved, most-blocking first, 2 lines each
 
 Identity: --as <agent>, else $LANES_AGENT, else git config user.name.
 `;
@@ -33,4 +39,7 @@ export const COMMANDS: Record<string, Command> = {
   lock: cmdLock,
   unlock: cmdUnlock,
   board: cmdBoard,
+  ask: cmdAsk,
+  answer: cmdAnswer,
+  questions: cmdQuestions,
 };

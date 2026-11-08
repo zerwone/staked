@@ -19,6 +19,7 @@ const BOOLEAN = new Set([
   'no-git',
   'version',
   'md',
+  'withdraw',
 ]);
 
 export function parseArgs(argv: string[]): Args {
