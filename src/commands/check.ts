@@ -11,7 +11,7 @@ import {
   contentAt,
   git,
   gitPath,
-  pathsCommittedBy,
+  taskCommittedPaths,
   stagedAddedLines,
   stagedContent,
   stagedPaths,
@@ -108,7 +108,7 @@ function union(a: string[], b: string[]) {
 function sinceClaim(repo: Repo, state: ReturnType<typeof boardState>, task: string, agent: string): string[] {
   const t = state.get(task);
   const since = t?.claimedAt ?? t?.history[0]?.ts;
-  return since ? pathsCommittedBy(repo.root, agent, since) : [];
+  return since ? taskCommittedPaths(repo.root, task, agent, since) : [];
 }
 
 // ---------------- hook ----------------

@@ -125,3 +125,38 @@ export function statusCount(cwd: string): number {
   if (!out) return 0;
   return out.split(/\r?\n/).filter(Boolean).length;
 }
+
+/**
+ * The commit that added the DOING row for `task` at `claimedAt`, if it is in history.
+ * Used to attribute work by branch when git author names are fixed by the vendor.
+ */
+export function claimCommit(cwd: string, task: string, claimedAt: string): string | null {
+  const out = git(cwd, ['log', '--reverse', '--format=%H', '-S', `"task":"${task}"`, '--', 'agents/board.jsonl'], { allowFail: true });
+  if (!out) return null;
+  for (const sha of out.split(/\r?\n/).filter(Boolean)) {
+    for (const line of commitAddedLines(cwd, sha, 'agents/board.jsonl')) {
+      try {
+        const e = JSON.parse(line);
+        if (e.task === task && e.ts === claimedAt && String(e.status).toUpperCase() === 'DOING') return sha;
+      } catch {
+        /* not json */
+      }
+    }
+  }
+  return null;
+}
+
+/** Paths changed from `sha` (inclusive) to HEAD. */
+export function pathsSince(cwd: string, sha: string): string[] {
+  const own = splitZ(git(cwd, ['diff-tree', '--no-commit-id', '--name-only', '-r', '-z', '--no-renames', '--root', sha], { allowFail: true }));
+  const after = splitZ(git(cwd, ['diff', '--name-only', '-z', '--no-renames', `${sha}..HEAD`], { allowFail: true }));
+  return [...new Set([...own, ...after])];
+}
+
+/** Everything attributable to an agent's task: commits by that author since the claim, plus the branch since the claim commit. */
+export function taskCommittedPaths(cwd: string, task: string, agent: string, claimedAt: string): string[] {
+  const set = new Set(pathsCommittedBy(cwd, agent, claimedAt));
+  const c = claimCommit(cwd, task, claimedAt);
+  if (c) for (const p of pathsSince(cwd, c)) set.add(p);
+  return [...set];
+}

@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { Args, bool, str } from '../lib/args.js';
 import { appendEvent, boardState, doingTasks, parseStatus, readBoard, Status, TaskState } from '../lib/board.js';
 import { Ctx, findRepo, Repo, resolveIdentity } from '../lib/context.js';
-import { pathsCommittedBy, workingChanges } from '../lib/git.js';
+import { taskCommittedPaths, workingChanges } from '../lib/git.js';
 import { acquire, DEFAULT_TTL, readLock, release } from '../lib/locks.js';
 import { regen } from '../lib/render.js';
 import { reportPath, validateReport } from '../lib/report.js';
@@ -64,7 +64,7 @@ function claim(ctx: Ctx, repo: Repo, task: string, who: string, args: Args): num
 /** Paths that really changed for a task: working tree + commits by the agent since the claim. */
 export function actualTaskPaths(repo: Repo, agent: string, t: TaskState | undefined): string[] {
   const set = new Set(workingChanges(repo.root));
-  if (t?.claimedAt) for (const p of pathsCommittedBy(repo.root, agent, t.claimedAt)) set.add(p);
+  if (t?.claimedAt) for (const p of taskCommittedPaths(repo.root, t.task, agent, t.claimedAt)) set.add(p);
   return [...set];
 }
 

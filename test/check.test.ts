@@ -250,3 +250,20 @@ describe('check: lanes come from HEAD, not from the change itself', () => {
     expect(r.err).toContain('agents/roles.yml: only the boss or owner may change this');
   });
 });
+
+describe('check: work attributed by branch when the vendor fixes the git author', () => {
+  it('counts files committed under another author name after the claim commit', () => {
+    const dir = committed(fixtureRepo());
+    lanes(dir, ['claim', 'T-1', '--as', 'cursor']);
+    sh(dir, ['add', '-A']);
+    sh(dir, ['-c', 'user.name=Bot', 'commit', '-qm', 'claim', '--no-verify']);
+    write(dir, 'server/api.ts', 'x');
+    sh(dir, ['add', '-A']);
+    sh(dir, ['-c', 'user.name=Bot', 'commit', '-qm', 'work', '--no-verify']);
+    write(dir, 'agents/reports/T-1-cursor.md', REPORT('T-1', 'cursor', ['server/api.ts']));
+    expect(lanes(dir, ['status', 'T-1', 'REVIEW', '--as', 'cursor']).code).toBe(0);
+    sh(dir, ['add', '-A']);
+    const r = lanes(dir, ['check', '--as', 'cursor']);
+    expect(r.code, r.err).toBe(0);
+  });
+});
