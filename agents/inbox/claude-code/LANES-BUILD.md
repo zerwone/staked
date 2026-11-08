@@ -1,3 +1,10 @@
+---
+task: LANES-BUILD
+owner: claude-code
+status: open
+allowed_paths: ["src/**", "test/**", "docs/**", "examples/two-agents/**", "README.md", "LICENSE", "package.json", "package-lock.json", "tsconfig.json", "vitest.config.ts", ".gitignore", ".gitattributes", "agents/**"]
+done_when: "npm test passes; init+gen on a fresh repo gives context files under 6 KB; e2e proves cross-lane commit refused; doctor finds duplicate ids and stacked authority; report filed"
+---
 # LANES-BUILD — build the `lanes` CLI (open-source extraction of the CD agent protocol)
 
 Owner: Mohamad. Agent: claude-code. Date: 2026-11-08.
