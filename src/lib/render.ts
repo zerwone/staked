@@ -298,8 +298,10 @@ export function runGen(repo: Repo, opts: { force?: boolean; dryRun?: boolean } =
       res.refused.push(p.file);
       continue;
     }
-    if (opts.dryRun) {
-      (cur === p.content ? res.unchanged : res.written).push(p.file);
+    // core.autocrlf on Windows checks files out with CRLF: same content, not a change
+    const same = cur !== null && cur.replace(/\r\n/g, '\n') === p.content;
+    if (opts.dryRun || same) {
+      (same ? res.unchanged : res.written).push(p.file);
       continue;
     }
     if (writeIfChanged(abs, p.content)) res.written.push(p.file);

@@ -80,3 +80,14 @@ describe('lanes gen', () => {
     }
   });
 });
+
+describe('gen on Windows checkouts', () => {
+  it('treats a CRLF copy of a generated file as unchanged and valid', () => {
+    const dir = fixtureRepo();
+    write(dir, 'CLAUDE.md', read(dir, 'CLAUDE.md').replace(/\n/g, '\r\n'));
+    expect(verifyGenerated(read(dir, 'CLAUDE.md'))).toBe('ok');
+    const r = lanes(dir, ['gen']);
+    expect(r.out).toMatch(/^same\s+CLAUDE\.md/m);
+    expect(read(dir, 'CLAUDE.md')).toContain('\r\n');
+  });
+});

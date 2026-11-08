@@ -171,7 +171,7 @@ export function doctor(repo: Repo, now: Date, opts: { agentsDir?: string } = {})
     const st = verifyGenerated(text);
     if (st === 'edited') findings.push({ check: 'generated-hand-edited', weakness: 5, severity: 'error', file: f, message: 'generated file was edited by hand (hash mismatch); move the change into roles.yml/DECISIONS.md and run `lanes gen`' });
     else if (st === 'not-generated' && plans.has(f)) findings.push({ check: 'generated-hand-written', weakness: 1, severity: 'warn', file: f, message: 'hand-written file where lanes generates one; agents may read two authorities' });
-    else if (st === 'ok' && plans.has(f) && plans.get(f) !== text) findings.push({ check: 'generated-stale', weakness: 5, severity: 'warn', file: f, message: 'out of date with roles.yml / board (run `lanes gen`)' });
+    else if (st === 'ok' && plans.has(f) && plans.get(f) !== text.replace(/\r\n/g, '\n')) findings.push({ check: 'generated-stale', weakness: 5, severity: 'warn', file: f, message: 'out of date with roles.yml / board (run `lanes gen`)' });
     if (!f.startsWith('agents/') && Buffer.byteLength(text) >= CONTEXT_LIMIT) {
       findings.push({ check: 'context-size', weakness: 5, severity: 'warn', file: f, message: `${Buffer.byteLength(text)} bytes; target is under 6 KB` });
     }
