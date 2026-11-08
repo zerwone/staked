@@ -1,0 +1,22 @@
+# lanes roles file: single source of truth for roles, lanes and status.
+# Edit this file (or use `lanes handover`), then run `lanes gen`.
+# Never hand-edit the generated CLAUDE.md / AGENTS.md / GEMINI.md / .cursor/rules.
+# agent status: active | paused | retired
+owner: alex
+boss: claude-code
+agents:
+  claude-code:
+    status: active
+    lane: ["api/**", "db/**"]
+    reviews: ["cursor"]
+  cursor:
+    status: active
+    lane: ["web/**"]
+    reviews: ["claude-code"]
+rules:
+  - claim before start, one task at a time
+  - never edit another lane's files
+  - shared interfaces change in agents/specs first
+  - nobody approves their own work
+  - no deploy, push or migration without owner go
+resources: ["staging-db"]

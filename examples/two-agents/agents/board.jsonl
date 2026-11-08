@@ -1,0 +1,3 @@
+{"ts":"2026-11-08T09:10:00Z","task":"T-001","agent":"claude-code","status":"DOING","note":"orders endpoint","flags":[]}
+{"ts":"2026-11-08T09:12:00Z","task":"T-002","agent":"cursor","status":"DOING","note":"orders page","flags":[]}
+{"ts":"2026-11-08T11:00:00Z","task":"T-002","agent":"cursor","status":"REVIEW","note":"orders page ready","flags":[]}
