@@ -3,3 +3,4 @@
 {"ts":"2026-11-08T12:50:00Z","task":"LANES-BUILD","agent":"owner","status":"TODO","note":"build the lanes CLI per docs/LANES-BUILD.md","flags":[]}
 {"ts":"2026-11-08T12:50:00Z","task":"POCKET-BUILD","agent":"owner","status":"TODO","note":"build pocket per docs/POCKET-BUILD.md; new repo zerwone/pocket; depends on nothing in LANES-BUILD","flags":[]}
 {"ts":"2026-11-08T13:10:54Z","task":"POCKET-BUILD","agent":"claude-code","status":"DOING","note":"building pocket (local repo, see report); spec agents/inbox/POCKET-BUILD.md","flags":[]}
+{"ts":"2026-11-08T13:37:14Z","task":"POCKET-BUILD","agent":"claude-code","status":"REVIEW","note":"pocket built (local repo + bundle); npm test 65/65 with keychain; report agents/reports/POCKET-BUILD-claude-code.md","flags":[]}
