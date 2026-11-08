@@ -6,6 +6,7 @@ import { cmdAnswer, cmdAsk, cmdQuestions } from './questions.js';
 import { cmdCheck, cmdHook } from './check.js';
 import { cmdHandover } from './handover.js';
 import { cmdReport } from './report.js';
+import { cmdPrune } from './prune.js';
 
 export const HELP = `lanes: roles, lanes and a decision ledger for multi-agent repos
 
@@ -40,6 +41,7 @@ Usage: lanes <command> [options]
                                          move lanes and/or boss in roles.yml, log HISTORY, regen
   report check <path> [--no-git]         validate report frontmatter (task, agent, flags,
                                          tests_run, native_boot, files_changed) against git
+  prune [--days 14] [--dry-run]          archive closed specs and reports of tasks DONE > N days
 
 Identity: --as <agent>, else $LANES_AGENT, else git config user.name.
 `;
@@ -58,4 +60,5 @@ export const COMMANDS: Record<string, Command> = {
   hook: cmdHook,
   handover: cmdHandover,
   report: cmdReport,
+  prune: cmdPrune,
 };
