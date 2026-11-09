@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>staked: run several coding agents on one repo without conflicts</title>
+<meta name="description" content="Free, open-source CLI: give Claude Code, Codex, Cursor and Gemini CLI their own paths in one repo, check every commit, and see what needs you.">
+<link rel="canonical" href="https://zerwone.github.io/staked/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151515" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="staked">
+<meta property="og:title" content="staked: give each coding agent its own part of the repo">
+<meta property="og:description" content="Path ownership, commit checks and one decision list for Claude Code, Codex, Cursor and Gemini CLI on one repo. Plain files, no server.">
+<meta property="og:url" content="https://zerwone.github.io/staked/">
+<meta property="og:image" content="https://zerwone.github.io/staked/social.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="staked logo, headline and example terminal output">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://zerwone.github.io/staked/#app",
+      "name": "staked",
+      "alternateName": "@zerwone/staked",
+      "description": "Free, open-source command-line tool for running several AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) on one Git repository: per-agent path ownership, generated instruction files, a pre-commit check, and one list of decisions waiting for the owner.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "url": "https://zerwone.github.io/staked/",
+      "downloadUrl": "https://www.npmjs.com/package/@zerwone/staked",
+      "sameAs": ["https://github.com/zerwone/staked"],
+      "author": { "@type": "Person", "name": "Mohamad Aljadaan", "affiliation": { "@type": "Organization", "name": "ZerwOne" } }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://zerwone.github.io/staked/#faq",
+      "mainEntity": [
+        { "@type": "Question", "name": "How do I run multiple coding agents on the same repo without conflicts?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Two layers. Git worktrees give each agent its own working copy, so they don't overwrite each other's files while they work. staked decides who may change which paths and checks it before each commit, so work stays in its lane when it comes back together. Use both." } },
+        { "@type": "Question", "name": "What's the difference between staked and git worktrees?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Worktrees separate where agents work. staked separates what they may change, writes their instructions, and collects their questions. Worktrees alone don't stop two agents from editing the same module on different branches." } },
+        { "@type": "Question", "name": "How is it different from CODEOWNERS?",
+          "acceptedAnswer": { "@type": "Answer", "text": "CODEOWNERS requests reviewers on a pull request after the change exists. staked checks each agent's commit locally, before it exists, and also gives each agent its own instructions and a place to ask you questions." } },
+        { "@type": "Question", "name": "Does it work with Claude Code, Codex, Cursor and Gemini CLI?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. It generates CLAUDE.md, AGENTS.md, .cursor/rules/staked.mdc and GEMINI.md, the files those agents already read. Any agent that reads files in the repo can follow it." } },
+        { "@type": "Question", "name": "Can it stop an agent from editing a file?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. It refuses the commit, not the edit. It is a workflow check, not a sandbox, and git commit --no-verify skips it." } },
+        { "@type": "Question", "name": "Does staked call an AI model or need a server?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. It is plain files in your repo, a CLI and a Git hook. No account, no network calls." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="staked home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3v18M9 3v18M15 3v18M21 3v18"/><rect x="10.8" y="10" width="2.4" height="4" fill="currentColor" stroke="none"/></svg>
+      staked
+    </a>
+    <nav aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#faq" class="hide-sm">FAQ</a>
+      <a href="https://github.com/zerwone/staked">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1>Give each coding agent its own part of the repo.</h1>
+    <p class="lede">Each agent gets its own lane. You get one short list of what needs you. Plain files in your repo. No server, no account.</p>
+    <div class="copyrow">
+      <pre class="term" id="install"><span class="p">$ </span>npm i -D @zerwone/staked
+<span class="p">$ </span>npx @zerwone/staked init --agents claude-code=src/**,codex=web/**</pre>
+      <button class="copy" type="button" data-copy="install">Copy</button>
+    </div>
+    <p class="def"><strong>staked is a free, open-source command-line tool for running several AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) on one Git repository.</strong> You assign each agent the paths it owns in one file. staked writes each agent's instruction file, checks staged files before every commit, and keeps one short list of decisions waiting for you.</p>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <figure style="margin:0 0 20px"><img src="demo.gif" alt="Demo: a commit outside the agent's lane is refused, an in-lane commit passes, and the owner sees one open question" width="1280" height="720" loading="lazy" style="width:100%;height:auto;border-radius:8px;display:block"><figcaption class="small" style="margin-top:8px">Recorded from a real run.</figcaption></figure>
+      <p>That one <code>init</code> command:</p>
+      <ol>
+        <li>writes <code>agents/roles.yml</code>: who owns which folders</li>
+        <li>writes a short <code>CLAUDE.md</code> and <code>AGENTS.md</code> for each agent, so they know their lane and their tasks</li>
+        <li>installs a git hook that checks staged files and refuses a commit outside the agent's lane</li>
+      </ol>
+      <p>Then tell each agent who it is, once per worktree: <code>git config user.name codex</code>. They pick it up from there.</p>
+      <p>An agent tries to commit a file outside its lane:</p>
+      <pre class="term"><span class="hl">staked check: refused for codex</span>
+  - src/api/orders.ts: outside codex's lane (lane of claude-code)</pre>
+      <p style="margin-top:14px">An agent needs a decision from you. It asks, picks a safe default, and keeps working. From your phone:</p>
+      <pre class="term"><span class="p">$ </span>npx @zerwone/staked questions open
+<span class="hl">Q-001</span> · blocks 1: T-012 · codex · 0m · exp 11-09
+  Same page or separate tab for order history? → default: same page</pre>
+      <p style="margin-top:14px">Answer it, or let the default stand.</p>
+      <p class="note">The hook is a workflow check, not a sandbox: an agent can still edit any file, and <code>git commit --no-verify</code> skips it.</p>
+    </div>
+  </section>
+
+  <section id="why">
+    <div class="wrap">
+      <h2>Why it exists</h2>
+      <p>staked comes from a real project: 4 agents (Claude Code, Codex, Cursor), 24 days, about 1,600 commits, coordinated with hand-written markdown. It worked, but the files didn't scale.</p>
+      <div class="table">
+        <table>
+          <thead><tr><th></th><th>By hand</th><th>With staked</th></tr></thead>
+          <tbody>
+            <tr><td>Coordination files each agent was pointed at</td><td>~300 KB</td><td>2.6 KB generated per agent (measured)</td></tr>
+            <tr><td>Finding what needs you</td><td>256 KB of board and questions</td><td>one short list</td></tr>
+            <tr><td>Commits that touched two agents' lanes at once</td><td>29, none flagged</td><td>the hook refuses this kind of commit (tested on sample commits, not yet replayed on the original 29)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:14px">Works with any agent that reads files in the repo: <strong>Claude Code</strong>, <strong>Codex</strong>, <strong>Cursor</strong>, <strong>Gemini CLI</strong>. Windows, macOS, Linux.</p>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>FAQ</h2>
+      <details><summary>How do I run multiple coding agents on the same repo without conflicts?</summary><p>Two layers. Git worktrees give each agent its own working copy, so they don't overwrite each other's files while they work. staked decides who may change which paths and checks it before each commit, so work stays in its lane when it comes back together. Use both.</p></details>
+      <details><summary>What's the difference between staked and git worktrees?</summary><p>Worktrees separate where agents work. staked separates what they may change, writes their instructions, and collects their questions. Worktrees alone don't stop two agents from editing the same module on different branches.</p></details>
+      <details><summary>How is it different from CODEOWNERS?</summary><p>CODEOWNERS requests reviewers on a pull request after the change exists. staked checks each agent's commit locally, before it exists, and also gives each agent its own instructions and a place to ask you questions.</p></details>
+      <details><summary>Does it work with Claude Code, Codex, Cursor and Gemini CLI?</summary><p>Yes. It generates CLAUDE.md, AGENTS.md, .cursor/rules/staked.mdc and GEMINI.md, the files those agents already read. Any agent that reads files in the repo can follow it.</p></details>
+      <details><summary>Can it stop an agent from editing a file?</summary><p>No. It refuses the commit, not the edit. It is a workflow check, not a sandbox, and git commit --no-verify skips it.</p></details>
+      <details><summary>Does staked call an AI model or need a server?</summary><p>No. It is plain files in your repo, a CLI and a Git hook. No account, no network calls.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Built by Mohamad Aljadaan at <strong>ZerwOne</strong> · MIT</span>
+    <span><a href="https://github.com/zerwone/staked">GitHub</a> · <a href="https://www.npmjs.com/package/@zerwone/staked">npm</a> · Sister project: <a href="https://zerwone.github.io/pocket/">pocket</a></span>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.copy').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var lines = document.getElementById(b.dataset.copy).innerText.split('\n').map(function (l) { return l.replace(/^\$ /, ''); }).join('\n');
+    (navigator.clipboard ? navigator.clipboard.writeText(lines) : Promise.reject()).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, function () {});
+  });
+});
+</script>
+</body>
+</html>

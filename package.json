@@ -1,0 +1,58 @@
+{
+  "name": "@zerwone/staked",
+  "version": "0.1.0",
+  "description": "Give each coding agent its own part of the repo: path ownership, commit checks and one decision list. Git-native, works with any agent that reads files.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "staked": "dist/main.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "claude-code",
+    "codex",
+    "cursor",
+    "gemini-cli",
+    "coding-agents",
+    "ai-agents",
+    "multi-agent",
+    "agents-md",
+    "claude-md",
+    "git-hook",
+    "pre-commit",
+    "codeowners",
+    "path-ownership",
+    "developer-tools",
+    "cli"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/zerwone/staked#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerwone/staked.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zerwone/staked/issues"
+  },
+  "author": "Mohamad Aljadaan (ZerwOne)"
+}

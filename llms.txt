@@ -1,0 +1,20 @@
+# staked
+
+> staked is a free, open-source (MIT) command-line tool for running several AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) on one Git repository. One file assigns each agent the paths it owns. staked generates each agent's instruction file (CLAUDE.md, AGENTS.md, .cursor/rules/staked.mdc, GEMINI.md), installs a pre-commit hook that refuses commits outside the committing agent's paths, and keeps one short list of decisions waiting for the human owner. Package: @zerwone/staked. Command: staked.
+
+Key facts:
+- Plain files in the repo, a CLI and a Git hook. No server, no account, no AI model calls.
+- Setup: `npm i -D @zerwone/staked`, then `npx @zerwone/staked init --agents claude-code=src/**,codex=web/**`.
+- It checks commits, not edits: it is a workflow check, not a sandbox; `git commit --no-verify` skips it.
+- Complements git worktrees (separate working copies) and differs from CODEOWNERS (review requests on pull requests).
+- Extracted from a private project where 4 coding agents worked on one repo for 24 days (about 1,600 commits).
+
+## Docs
+
+- [README](https://github.com/zerwone/staked/blob/main/README.md): what it does, setup, FAQ
+- [Reference](https://github.com/zerwone/staked/blob/main/docs/REFERENCE.md): commands and file formats
+- [Origin audit](https://github.com/zerwone/staked/blob/main/docs/ORIGIN.md): the ten problems it was built to fix
+
+## Optional
+
+- [Sister project: pocket](https://github.com/zerwone/pocket): keeps coding agents working on your own keys when they hit a usage limit
