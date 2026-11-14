@@ -230,3 +230,8 @@ launcher and no PATH change. They start the daemon if needed, set the launcher's
 suggest the right one (`docter` -> `pocket doctor`, `claude-pocket` -> `pocket claude`). `attach claude` points at
 `pocket claude` first. Tests: 69/69 (real keychain), including the real Claude Code CLI via `pocket claude` against
 fake providers with a forced 429. Windows `cmd.exe` quoting of passthrough args is written but untested here.
+
+Second follow-up (pocket commit after 8671917): `attach claude` and `attach codex` now write the launcher into the
+PATH folder that already holds `pocket` (npm's global bin, `%APPDATA%\npm` on Windows), so `claude-pocket` runs by
+name in a new terminal without any PATH edit. pocket still never edits PATH itself (a lasting system change, and
+`setx` can truncate PATH). It falls back to the config dir and says so. Tests: 71/71 with the real keychain.
