@@ -91,6 +91,8 @@ export function cmdInit(ctx: Ctx, args: Args): number {
   const unset = names.filter((n) => !lanesOf[n]?.length);
   const next = [''];
   if (unset.length) next.push(`Give ${unset.join(', ')} a lane in agents/roles.yml (e.g. lane: ["src/**"]), then run: npx @zerwone/staked gen`);
+  next.push(`First, commit these files as yourself (the owner), before any agent commits:`);
+  next.push(`  git add agents CLAUDE.md AGENTS.md .gitattributes .gitignore && git commit -m "add staked"`);
   next.push(`Each agent identifies itself once per worktree: git config user.name <agent>`);
   next.push(`Then hand an agent its first task: npx @zerwone/staked claim T-001 --as ${names[0]}`);
   next.push(`You, from anywhere: npx @zerwone/staked questions open`);

@@ -1,6 +1,6 @@
 {
   "name": "@zerwone/staked",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Give each coding agent its own part of the repo: path ownership, commit checks and one decision list. Git-native, works with any agent that reads files.",
   "license": "MIT",
   "type": "module",

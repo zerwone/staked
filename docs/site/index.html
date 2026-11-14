@@ -76,6 +76,7 @@
     </a>
     <nav aria-label="Main">
       <a href="#how">How it works</a>
+      <a href="#use">Use it</a>
       <a href="#faq" class="hide-sm">FAQ</a>
       <a href="https://github.com/zerwone/staked">GitHub</a>
     </nav>
@@ -91,20 +92,32 @@
 <span class="p">$ </span>npx @zerwone/staked init --agents claude-code=src/**,codex=web/**</pre>
       <button class="copy" type="button" data-copy="install">Copy</button>
     </div>
+    <p class="small" style="margin-top:10px">npm: <a href="https://www.npmjs.com/package/@zerwone/staked">@zerwone/staked</a> · needs Node.js 20+ and a Git repo · <a href="https://github.com/zerwone/staked/releases">release notes</a></p>
     <p class="def"><strong>staked is a free, open-source command-line tool for running several AI coding agents (Claude Code, Codex, Cursor, Gemini CLI) on one Git repository.</strong> You assign each agent the paths it owns in one file. staked writes each agent's instruction file, checks staged files before every commit, and keeps one short list of decisions waiting for you.</p>
   </div>
 
   <section id="how">
     <div class="wrap">
       <h2>How it works</h2>
-      <figure style="margin:0 0 20px"><img src="demo.gif" alt="Demo: a commit outside the agent's lane is refused, an in-lane commit passes, and the owner sees one open question" width="1280" height="720" loading="lazy" style="width:100%;height:auto;border-radius:8px;display:block"><figcaption class="small" style="margin-top:8px">Recorded from a real run.</figcaption></figure>
-      <p>That one <code>init</code> command:</p>
-      <ol>
-        <li>writes <code>agents/roles.yml</code>: who owns which folders</li>
-        <li>writes a short <code>CLAUDE.md</code> and <code>AGENTS.md</code> for each agent, so they know their lane and their tasks</li>
-        <li>installs a git hook that checks staged files and refuses a commit outside the agent's lane</li>
+      <pre class="term">agents/roles.yml              <span class="c">← you write this once: who owns which paths</span>
+   │
+   ├─ staked gen ─► CLAUDE.md, AGENTS.md, GEMINI.md, .cursor/rules
+   │                <span class="c">each agent reads its lane, its tasks and the rules</span>
+   │
+   ├─ agent commits ─► pre-commit hook (staked check)
+   │                    ├─ files in its own lane  → <span class="hl">commit goes through</span>
+   │                    └─ a file in another lane → <span class="hl">refused, names the owner</span>
+   │
+   └─ agent needs a decision ─► staked ask … --default …
+                                  │   <span class="c">(keeps working on the default)</span>
+       you ◄── staked questions open ◄┘</pre>
+      <ol style="margin-top:16px">
+        <li><strong>Lanes.</strong> <code>agents/roles.yml</code> says which paths each agent owns, for example Claude Code gets <code>src/**</code>, Codex gets <code>web/**</code>.</li>
+        <li><strong>Instructions.</strong> staked writes the files each agent already reads, with its lane, its open tasks and the team rules. About 2.6 KB per agent.</li>
+        <li><strong>A check on every commit.</strong> A git hook looks at the staged files and refuses a commit that touches another agent's lane, before it exists.</li>
+        <li><strong>One list for you.</strong> When an agent needs your call, it files a question with a safe default and keeps going.</li>
       </ol>
-      <p>Then tell each agent who it is, once per worktree: <code>git config user.name codex</code>. They pick it up from there.</p>
+      <figure style="margin:20px 0"><img src="demo.gif" alt="Demo: a commit outside the agent's lane is refused, an in-lane commit passes, and the owner sees one open question" width="1280" height="720" loading="lazy" style="width:100%;height:auto;border-radius:8px;display:block"><figcaption class="small" style="margin-top:8px">Recorded from a real run.</figcaption></figure>
       <p>An agent tries to commit a file outside its lane:</p>
       <pre class="term"><span class="hl">staked check: refused for codex</span>
   - src/api/orders.ts: outside codex's lane (lane of claude-code)</pre>
@@ -114,6 +127,42 @@
   Same page or separate tab for order history? → default: same page</pre>
       <p style="margin-top:14px">Answer it, or let the default stand.</p>
       <p class="note">The hook is a workflow check, not a sandbox: an agent can still edit any file, and <code>git commit --no-verify</code> skips it.</p>
+    </div>
+  </section>
+
+  <section id="use">
+    <div class="wrap">
+      <h2>Use it</h2>
+      <p><strong>1. Install</strong> in your project (<a href="https://www.npmjs.com/package/@zerwone/staked">npm</a>):</p>
+      <pre class="term"><span class="p">$ </span>npm i -D @zerwone/staked</pre>
+      <p style="margin-top:14px"><strong>2. Set up lanes</strong> from the repo root. Give one agent several paths with <code>+</code>, as in <code>claude-code=src/**+test/**</code>:</p>
+      <pre class="term"><span class="p">$ </span>npx @zerwone/staked init --owner you --agents claude-code=src/**,codex=web/**</pre>
+      <p style="margin-top:14px"><strong>3. Commit the setup as yourself</strong>, before any agent commits:</p>
+      <pre class="term"><span class="p">$ </span>git add agents CLAUDE.md AGENTS.md .gitattributes .gitignore
+<span class="p">$ </span>git commit -m "add staked"</pre>
+      <p style="margin-top:14px"><strong>4. Give each agent its own worktree and identity.</strong> Worktrees keep agents from overwriting each other while they work; the identity tells staked whose lane applies.</p>
+      <pre class="term"><span class="p">$ </span>git worktree add ../myapp-codex
+<span class="p">$ </span>cd ../myapp-codex
+<span class="p">$ </span>git config user.name codex</pre>
+      <p style="margin-top:14px"><strong>5. Start the agents as usual</strong> in their worktrees. Each reads its instruction file and knows its lane and the rules. Tell an agent its task; it claims it before starting, and commits are refused until it has: <code>npx @zerwone/staked claim T-001 --as codex</code></p>
+      <p><strong>6. Check in, from anywhere:</strong></p>
+      <pre class="term"><span class="p">$ </span>npx @zerwone/staked questions open                 <span class="c"># what needs you</span>
+<span class="p">$ </span>npx @zerwone/staked answer Q-001 --use-default     <span class="c"># or --text ".."</span>
+<span class="p">$ </span>npx @zerwone/staked board                          <span class="c"># who is doing what</span></pre>
+      <p style="margin-top:14px"><strong>7. Change it later:</strong> edit <code>agents/roles.yml</code> and run <code>npx @zerwone/staked gen</code>, or move a lane with <code>npx @zerwone/staked handover codex claude-code</code>.</p>
+      <p class="note">Always run it as <code>npx @zerwone/staked</code>. A bare <code>npx staked</code> could run someone else's package with the same short name.</p>
+    </div>
+  </section>
+
+  <section id="trouble">
+    <div class="wrap">
+      <h2>Troubleshooting</h2>
+      <ul>
+        <li><strong>Refused for files the agent didn't touch, right after <code>init</code></strong>: commit the setup files as yourself first (step 3).</li>
+        <li><strong><code>has no DOING task: claim before start</code></strong>: the agent claims its task first: <code>npx @zerwone/staked claim T-001 --as codex</code>.</li>
+        <li><strong>The hook names the wrong agent</strong>: identity comes from <code>--as</code>, then <code>STAKED_AGENT</code>, then <code>git config user.name</code> in that worktree.</li>
+        <li><strong>Anything else</strong>: <code>npx @zerwone/staked doctor</code> lists what's wrong and where, or <a href="https://github.com/zerwone/staked/issues">open an issue</a>.</li>
+      </ul>
     </div>
   </section>
 
