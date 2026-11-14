@@ -217,3 +217,16 @@ provider's own time to first token (network + queue), which pocket does not cont
 - **Free-tier limits and model ids.** Not re-verified (decision 3).
 - **Codex and Cursor clients.** Neither binary exists here. Codex attach/detach is tested on the config file. The
   `http_headers` / `wire_api` keys follow Codex's documented provider table but were not run against a real Codex.
+
+## Follow-up (2026-11-14): first run on the owner's Windows machine
+
+On Windows, `pocket doctor` was clean: Windows Credential Manager available, daemon running, and the groq,
+cerebras, nvidia and openrouter keys all valid. But `claude-pocket` was not found, because `attach claude`
+writes it to `%APPDATA%\pocket\bin`, which is not on PATH. `pocket claude` and `pocket docter` were unknown commands.
+
+Fix (pocket commit 8671917): `pocket claude [args]` and `pocket codex [args]` run the agent through pocket with no
+launcher and no PATH change. They start the daemon if needed, set the launcher's environment (and remove a real
+`ANTHROPIC_API_KEY`), pass every argument through untouched, and return the agent's exit code. Unknown commands now
+suggest the right one (`docter` -> `pocket doctor`, `claude-pocket` -> `pocket claude`). `attach claude` points at
+`pocket claude` first. Tests: 69/69 (real keychain), including the real Claude Code CLI via `pocket claude` against
+fake providers with a forced 429. Windows `cmd.exe` quoting of passthrough args is written but untested here.
